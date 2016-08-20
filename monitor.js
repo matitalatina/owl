@@ -1,6 +1,6 @@
 var plugPower = 700;
 
-var Wemo = require('wemo-client');
+var Wemo = require('./wemo-client');
 var wemo = new Wemo();
 
 var plugs = []
