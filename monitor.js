@@ -12,8 +12,14 @@ wemo.discover(function(deviceInfo) {
 	var UDN = client["UDN"];
 	console.log("Found " + UDN);
 	plugs[UDN] = client;
+
 	client.setBinaryState(0);
 	status[UDN] = 0
+
+	client.on('binaryState', function(value) {
+		status[UDN] = value;
+    	console.log(UDN + ': %s', value);
+    });
 });
 
 var OWL = require('./owlintuition.js');
@@ -42,12 +48,12 @@ owl.on('electricity', function( event ) {
 
 function control() {
 	for (var UDN in status) {
-		if (status[UDN] == 0 && exporting > plugPower) {
+		if ((status[UDN] == 0) && (exporting > plugPower)) {
 			plugs[UDN].setBinaryState(1);
 			status[UDN] = 1;
 			console.log(UDN + ": Accesa");
 			return
-		} else if (status[UDN] == 1 && consuming > (generating + 100)) {
+		} else if ((status[UDN] > 0) && (consuming > generating)) {
 			plugs[UDN].setBinaryState(0);
 			status[UDN] = 0;
 			console.log(UDN + ": Spenta");
