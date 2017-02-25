@@ -1,6 +1,6 @@
 var plugPower = 700;
 
-var Wemo = require('./wemo-client');
+var Wemo = require('wemo-client');
 var wemo = new Wemo();
 
 var plugs = []
@@ -17,14 +17,13 @@ wemo.discover(function(deviceInfo) {
 	status[UDN] = 0;
 
 	client.on('binaryState', function(value) {
+		status[UDN] = parseInt(value);
     		console.log(UDN + ': %s', value);
     	});
 });
 
-var OWL = require('./owlintuition.js');
+var OWL = require('owlintuition');
 var owl = new OWL();
-
-owl.monitor();
 
 var exporting = 0;
 var generating = 0;
@@ -45,6 +44,12 @@ owl.on('electricity', function( event ) {
 	console.log("Consumando " + consuming);
 });
 
+owl.on('error', function( error ) {
+	console.log(error);
+});
+
+owl.monitor(); 
+
 function control() {
 	console.log('Potenza soglia: ' + plugPower);
 	for (var UDN in plugs) {
@@ -55,11 +60,13 @@ function control() {
                                 plugs.splice(UDN, 1);
 				status.splice(UDN, 1);
                         } else {
-				var status = parseInt(response);
-				if ((status == 0) && (exporting > plugPower)) {
+				var currentStatus = parseInt(response);
+				if ((currentStatus == 0 && status[UDN] == 0) && (exporting > plugPower)) {
+					console.log(UDN + ' accendo');
 					plugs[UDN].setBinaryState(1);
 					status[UDN] = 1;
-				} else if ((status > 0) && (consuming > generating)) {
+				} else if ((currentStatus > 0 && status[UDN] > 0) && (consuming > generating)) {
+					console.log(UDN + ' spengo');
 					plugs[UDN].setBinaryState(0);
 					status[UDN] = 0;
 				}

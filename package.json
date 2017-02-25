@@ -1,0 +1,31 @@
+{
+  "name": "owl-pg",
+  "version": "1.0.0",
+  "description": "",
+  "main": "monitor.js",
+  "dependencies": {
+    "debug": "^2.2.0",
+    "entities": "^1.1.1",
+    "express": "^4.14.0",
+    "node-ssdp": "^2.7.2",
+    "owlintuition": "^0.3.1",
+    "sqlite3": "^3.1.8",
+    "wemo-client": "^0.9.0",
+    "xml2js": "^0.4.17",
+    "xml2json": "^0.10.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arpesenti/owl.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/arpesenti/owl/issues"
+  },
+  "homepage": "https://github.com/arpesenti/owl#readme"
+}
