@@ -22,7 +22,7 @@ wemo.discover(function(deviceInfo) {
     	});
 });
 
-var OWL = require('owlintuition');
+var OWL = require('./owlintuition.js');
 var owl = new OWL();
 
 var exporting = 0;
