@@ -138,13 +138,12 @@ OWL.prototype.monitor = function ( ) {
 
 	self.multicastsocket.on("listening", function() {
 		self.emit('connect');
-		
 	});
 	
 	self.multicastsocket.on("message", function(msg, rinfo) {		
 		var json = xml.toJson( msg );
 		var buff = JSON.parse( json );
-		//console.log( util.inspect( buff , {depth: null}));
+		console.log( util.inspect( buff , {depth: null}));
 
 		if ( buff.electricity ) {			
 			var channel0, channel1, channel2 = null;

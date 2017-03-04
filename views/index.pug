@@ -1,0 +1,46 @@
+extends layout.pug
+
+block content
+  .container.mt-3
+    if plugs.length > 0
+      h1 Prese
+      ul
+        each plug in plugs
+          li #[i.fa.fa-plug] #{plug.name} #{plug.status}
+    h1 Panoramica
+    .row
+      .col-md-4.my-3
+        .card.card-outline-success.text-center
+          .card-block
+            h4.card-title.text-success #[i.fa.fa-3x.fa-sun-o]
+            h6.card-subtitle.mb-2.text-muted Produzione
+            span #{generating} W
+      .col-md-4.my-3
+        .card.card-outline-danger.text-center
+          .card-block
+            h4.card-title.text-danger #[i.fa.fa-3x.fa-fire]
+            h6.card-subtitle.mb-2.text-muted Consumo
+            span #{consuming} W
+      .col-md-4.my-3
+        .card.card-outline-info.text-center
+          .card-block
+            h4.card-title.text-info #[i.fa.fa-3x.fa-cloud-upload]
+            h6.card-subtitle.mb-2.text-muted Esportazione
+            span #{exporting} W
+      .col-md-4.my-3
+        .card.text-center
+          .card-block
+            h4.card-title #[i.fa.fa-3x.fa-signal]
+            h6.card-subtitle.mb-2.text-muted Potenza segnale
+            span #{signal.signal.quality}%
+            br
+            span #{signal.timestamp}
+    br
+    form
+      .form-group
+        label(for='plugPower') Potenza soglia
+        .input-group
+          input.form-control.col-md-3(type='text', name='plugPower', value=plugPower)
+          .input-group-addon W
+      button.btn.btn-primary(type='submit') #[i.fa.fa-save] Salva
+  
