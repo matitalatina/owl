@@ -1,33 +1,21 @@
-var plugPower = 700;
-
 var Wemo = require('wemo-client');
 var moment = require('moment');
-var wemo = new Wemo();
+var OWL = require('./owlintuition.js');
+var express = require('express');
+var app = express();
 
 moment.locale('it');
 
-var plugs = []
-var status = []
+const plugPower = 700;
+const port = 8080;
+const CHECK_PLUGS_INTERVAL = 5000;
+const DISCOVER_WEMO_INTERVAL = 10000;
 
-wemo.discover(function (deviceInfo) {
-  // Get the client for the found device 
-  var client = wemo.client(deviceInfo);
-  var UDN = client["UDN"];
-  console.log("Found " + UDN);
-  plugs[UDN] = client;
-
-  client.setBinaryState(0);
-  status[UDN] = 0;
-
-  client.on('binaryState', function (value) {
-    status[UDN] = parseInt(value);
-    console.log(UDN + ': %s', value);
-  });
-});
-
-var OWL = require('./owlintuition.js');
+var wemo = new Wemo();
 var owl = new OWL();
 
+var plugs = [];
+var status = [];
 var exporting = 0;
 var generating = 0;
 var consuming = 0;
@@ -35,6 +23,24 @@ var signal = {
   timestamp: moment(),
   signal: {rssi: 0, lqi: 0}
 };
+
+function discoverNewWemoPlugs() {
+  wemo.discover(function (deviceInfo) {
+    // Get the client for the found device 
+    var client = wemo.client(deviceInfo);
+    var UDN = client["UDN"];
+    console.log("Found " + UDN);
+    plugs[UDN] = client;
+
+    client.setBinaryState(0);
+    status[UDN] = 0;
+
+    client.on('binaryState', function (value) {
+      status[UDN] = parseInt(value);
+      console.log(UDN + ': %s', value);
+    });
+  });
+}
 
 owl.on('solar', function (event) {
   var json = JSON.parse(event);
@@ -64,7 +70,7 @@ owl.on('error', function (error) {
 
 owl.monitor();
 
-function control() {
+function checkPlugs() {
   console.log('Potenza soglia: ' + plugPower);
   for (var UDN in plugs) {
     plugs[UDN].getBinaryState(function (err, response) {
@@ -89,11 +95,9 @@ function control() {
   }
 }
 
-setInterval(control, 5 * 1000);
+setInterval(checkPlugs, CHECK_PLUGS_INTERVAL);
+setInterval(discoverNewWemoPlugs, DISCOVER_WEMO_INTERVAL);
 
-var express = require('express');
-var app = express();
-const util = require('util');
 app.set('view engine', 'pug');
 app.use('/bower_components', express.static(__dirname + '/bower_components'));
 app.get('/', function (req, res) {
@@ -116,7 +120,6 @@ app.get('/', function (req, res) {
   res.render('index.pug', context);
 })
 
-var port = 8080;
 app.listen(port, function () {
   console.log('Listening on port ' + port);
 })
