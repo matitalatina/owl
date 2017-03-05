@@ -2,6 +2,7 @@ var Wemo = require('wemo-client');
 var moment = require('moment');
 var OWL = require('./owlintuition.js');
 var express = require('express');
+var OwlHistory = require('./owl/history.js');
 var app = express();
 
 moment.locale('it');
@@ -13,6 +14,7 @@ const DISCOVER_WEMO_INTERVAL = 10000;
 
 var wemo = new Wemo();
 var owl = new OWL();
+var owlHistory = new OwlHistory();
 
 var plugs = [];
 var status = [];
@@ -32,8 +34,14 @@ function discoverNewWemoPlugs() {
     console.log("Found " + UDN);
     plugs[UDN] = client;
 
-    client.setBinaryState(0);
-    status[UDN] = 0;
+    var state = 0;
+    
+    if (exporting > plugPower) {
+      state = 1;
+    }
+    
+    client.setBinaryState(state);
+    status[UDN] = state;
 
     client.on('binaryState', function (value) {
       status[UDN] = parseInt(value);
@@ -53,6 +61,7 @@ owl.on('solar', function (event) {
 
 owl.on('electricity', function (event) {
   var json = JSON.parse(event);
+  owlHistory.add(json);
   signal = {
     timestamp: moment(),
     signal: {
@@ -81,11 +90,11 @@ function checkPlugs() {
         status.splice(UDN, 1);
       } else {
         var currentStatus = parseInt(response);
-        if ((currentStatus == 0 && status[UDN] == 0) && (exporting > plugPower)) {
+        if ((currentStatus == 0 && status[UDN] == 0) && (exporting >= plugPower)) {
           console.log(UDN + ' accendo');
           plugs[UDN].setBinaryState(1);
           status[UDN] = 1;
-        } else if ((currentStatus > 0 && status[UDN] > 0) && (consuming > generating)) {
+        } else if ((currentStatus > 0 && status[UDN] > 0) && (exporting <= 0)) {
           console.log(UDN + ' spengo');
           plugs[UDN].setBinaryState(0);
           status[UDN] = 0;
