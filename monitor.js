@@ -8,11 +8,11 @@ var app = express();
 
 moment.locale('it');
 
-const plugPower = 900;
+const plugPower = 700;
 const port = 8080;
 const CHECK_PLUGS_INTERVAL = 5000;
 const DISCOVER_WEMO_INTERVAL = 10000;
-const MAX_ADDITIONAL_POWER_ALLOWED = 0.5;
+const MAX_ADDITIONAL_POWER_ALLOWED = 1;
 
 var wemo = new Wemo();
 var owl = new OWL();
