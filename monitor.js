@@ -25,7 +25,10 @@ var generating = 0;
 var consuming = 0;
 var signal = {
   timestamp: moment(),
-  signal: {rssi: 0, lqi: 0}
+  signal: {
+    rssi: 0,
+    lqi: 0
+  }
 };
 
 function discoverNewWemoPlugs() {
@@ -35,15 +38,6 @@ function discoverNewWemoPlugs() {
     var UDN = client["UDN"];
     console.log("Found " + UDN);
     plugs[UDN] = client;
-
-    var state = 0;
-    
-    if (exporting > plugPower) {
-      state = 1;
-    }
-    
-    client.setBinaryState(state);
-    status[UDN] = state;
 
     client.on('binaryState', function (value) {
       status[UDN] = parseInt(value);
@@ -65,6 +59,7 @@ owl.on('electricity', function (event) {
   var json = JSON.parse(event);
   appHistory.add({
     exporting: exporting,
+    generating: generating,
     consuming: consuming,
     timestamp: moment(),
     active: _.sum(_.values(status))
@@ -97,14 +92,14 @@ function checkPlugs() {
         status.splice(UDN, 1);
       } else {
         var activePlugs = _.sum(_.values(status));
-        
+
         var currentStatus = parseInt(response);
         if ((currentStatus == 0 && status[UDN] == 0) && (exporting >= plugPower)) {
           console.log(UDN + ' accendo');
           plugs[UDN].setBinaryState(1);
           status[UDN] = 1;
         } else if ((currentStatus > 0 && status[UDN] > 0) &&
-                   (generating + activePlugs * plugPower * MAX_ADDITIONAL_POWER_ALLOWED - consuming <= 0)) {
+          (generating + activePlugs * plugPower * MAX_ADDITIONAL_POWER_ALLOWED - consuming <= 0)) {
           console.log(UDN + ' spengo');
           plugs[UDN].setBinaryState(0);
           status[UDN] = 0;
@@ -123,6 +118,7 @@ app.get('/', function (req, res) {
   if ('plugPower' in req.query) {
     plugPower = parseInt(req.query['plugPower']);
   }
+  console.log(appHistory.getHistory());
   var context = {
     plugPower: plugPower,
     plugs: Object.keys(plugs).map((UDN) => {
@@ -134,7 +130,9 @@ app.get('/', function (req, res) {
     generating: generating,
     consuming: consuming,
     exporting: exporting,
-    signal: Object.assign({}, signal, {timestamp: signal.timestamp.fromNow()}),
+    signal: Object.assign({}, signal, {
+      timestamp: signal.timestamp.fromNow()
+    }),
     overviewGraph: appHistory.getHistory()
   };
   res.render('index.pug', context);
