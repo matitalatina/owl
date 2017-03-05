@@ -1,6 +1,14 @@
 const MAX_HISTORY_ELEMS = 100;
 
-class OwlHistory {
+/*
+  {
+    exporting: 0,
+    consuming: 0,
+    timestamp: moment(),
+    active: 1
+  }
+*/
+class AppHistory {
   constructor() {
     this.history = [];
   }
@@ -15,4 +23,4 @@ class OwlHistory {
   }
 }
 
-var exports = module.exports = OwlHistory;
+var exports = module.exports = AppHistory;

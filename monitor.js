@@ -2,19 +2,21 @@ var Wemo = require('wemo-client');
 var moment = require('moment');
 var OWL = require('./owlintuition.js');
 var express = require('express');
-var OwlHistory = require('./owl/history.js');
+var AppHistory = require('./app/history.js');
+var _ = require('lodash');
 var app = express();
 
 moment.locale('it');
 
-const plugPower = 700;
+const plugPower = 900;
 const port = 8080;
 const CHECK_PLUGS_INTERVAL = 5000;
 const DISCOVER_WEMO_INTERVAL = 10000;
+const MAX_ADDITIONAL_POWER_ALLOWED = 0.5;
 
 var wemo = new Wemo();
 var owl = new OWL();
-var owlHistory = new OwlHistory();
+var appHistory = new AppHistory();
 
 var plugs = [];
 var status = [];
@@ -61,7 +63,12 @@ owl.on('solar', function (event) {
 
 owl.on('electricity', function (event) {
   var json = JSON.parse(event);
-  owlHistory.add(json);
+  appHistory.add({
+    exporting: exporting,
+    consuming: consuming,
+    timestamp: moment(),
+    active: _.sum(_.values(status))
+  });
   signal = {
     timestamp: moment(),
     signal: {
@@ -89,12 +96,15 @@ function checkPlugs() {
         plugs.splice(UDN, 1);
         status.splice(UDN, 1);
       } else {
+        var activePlugs = _.sum(_.values(status));
+        
         var currentStatus = parseInt(response);
         if ((currentStatus == 0 && status[UDN] == 0) && (exporting >= plugPower)) {
           console.log(UDN + ' accendo');
           plugs[UDN].setBinaryState(1);
           status[UDN] = 1;
-        } else if ((currentStatus > 0 && status[UDN] > 0) && (exporting <= 0)) {
+        } else if ((currentStatus > 0 && status[UDN] > 0) &&
+                   (generating + activePlugs * plugPower * MAX_ADDITIONAL_POWER_ALLOWED - consuming <= 0)) {
           console.log(UDN + ' spengo');
           plugs[UDN].setBinaryState(0);
           status[UDN] = 0;
@@ -124,7 +134,8 @@ app.get('/', function (req, res) {
     generating: generating,
     consuming: consuming,
     exporting: exporting,
-    signal: Object.assign({}, signal, {timestamp: signal.timestamp.fromNow()})
+    signal: Object.assign({}, signal, {timestamp: signal.timestamp.fromNow()}),
+    overviewGraph: appHistory.getHistory()
   };
   res.render('index.pug', context);
 })
