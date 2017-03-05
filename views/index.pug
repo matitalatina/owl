@@ -4,9 +4,16 @@ block content
   .container.mt-3
     if plugs.length > 0
       h1 Prese
-      ul
+      .row
         each plug in plugs
-          li #[i.fa.fa-plug] #{plug.name} #{plug.status}
+          - var classType = plug.status.toLowerCase() == 'accesa' ? 'success' : 'danger';
+          .col-md-2.my-1
+            .card.text-center(class='card-outline-' + classType)
+              .card-block
+                h4.card-title.pb-2(class='text-' + classType) #[i.fa.fa-2x.fa-plug]
+                h6.card-subtitle.mb-2.text-muted #{plug.name}
+                span #{plug.status}
+    hr
     h1 Panoramica
     .row
       .col-md-4.my-3
