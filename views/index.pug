@@ -84,9 +84,11 @@ block additionalScripts
         },
         series: [{
             name: 'Produzione',
+            color: '#5cb85c',
             data: _.map(overviewGraph, 'generating')
         }, {
             name: 'Consumo',
+            color: '#d9534f',
             data: _.map(overviewGraph, 'consuming')
         }]
     });
