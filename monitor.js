@@ -11,8 +11,8 @@ moment.locale('it');
 
 const plugPower = 700;
 const port = 8080;
-const CHECK_PLUGS_INTERVAL = '*/5 * * * *';
-const DISCOVER_WEMO_INTERVAL = '*/10 * * * *';
+const CHECK_PLUGS_INTERVAL = '*/5 * * * * *';
+const DISCOVER_WEMO_INTERVAL = '*/10 * * * * *';
 const MAX_ADDITIONAL_POWER_ALLOWED = 1;
 const AUTO_RESTART_INTERVAL = 5000;
 
@@ -116,8 +116,8 @@ function startOwlMonitor() {
 }
 
 function startCronJobs() {
-  new cron.CronJob(CHECK_PLUGS_INTERVAL, checkPlugs, true);
-  new cron.CronJob(DISCOVER_WEMO_INTERVAL, discoverNewWemoPlugs, true);
+  new cron.CronJob(CHECK_PLUGS_INTERVAL, checkPlugs, null, true);
+  new cron.CronJob(DISCOVER_WEMO_INTERVAL, discoverNewWemoPlugs, null, true);
 }
 
 function startServer() {
