@@ -4,18 +4,20 @@ var OWL = require('./owlintuition.js');
 var express = require('express');
 var AppHistory = require('./app/history.js');
 var _ = require('lodash');
+var cron = require('cron');
 var app = express();
 
 moment.locale('it');
 
 const plugPower = 700;
 const port = 8080;
-const CHECK_PLUGS_INTERVAL = 5000;
-const DISCOVER_WEMO_INTERVAL = 10000;
+const CHECK_PLUGS_INTERVAL = '*/5 * * * *';
+const DISCOVER_WEMO_INTERVAL = '*/10 * * * *';
 const MAX_ADDITIONAL_POWER_ALLOWED = 1;
+const AUTO_RESTART_INTERVAL = 5000;
 
 var wemo = new Wemo();
-var owl = new OWL();
+
 var appHistory = new AppHistory();
 
 var plugs = [];
@@ -46,41 +48,6 @@ function discoverNewWemoPlugs() {
   });
 }
 
-owl.on('solar', function (event) {
-  var json = JSON.parse(event);
-  exporting = parseInt(json.current[1].exporting);
-  generating = parseInt(json.current[0].generating);
-
-  console.log("Esportando " + exporting);
-  console.log("Generando " + generating);
-});
-
-owl.on('electricity', function (event) {
-  var json = JSON.parse(event);
-  appHistory.add({
-    exporting: exporting,
-    generating: generating,
-    consuming: consuming,
-    timestamp: moment(),
-    active: _.sum(_.values(status))
-  });
-  signal = {
-    timestamp: moment(),
-    signal: {
-      quality: Math.min(130 + parseInt(json.signal.rssi), 100),
-      lqi: parseInt(json.signal.lqi)
-    }
-  };
-  consuming = parseInt(json.channels[0][0].current);
-  console.log("Consumando " + consuming);
-});
-
-owl.on('error', function (error) {
-  console.log(error);
-});
-
-owl.monitor();
-
 function checkPlugs() {
   console.log('Potenza soglia: ' + plugPower);
   for (var UDN in plugs) {
@@ -109,35 +76,90 @@ function checkPlugs() {
   }
 }
 
-setInterval(checkPlugs, CHECK_PLUGS_INTERVAL);
-setInterval(discoverNewWemoPlugs, DISCOVER_WEMO_INTERVAL);
+function startOwlMonitor() {
+  var owl = new OWL();
 
-app.set('view engine', 'pug');
-app.use('/bower_components', express.static(__dirname + '/bower_components'));
-app.get('/', function (req, res) {
-  if ('plugPower' in req.query) {
-    plugPower = parseInt(req.query['plugPower']);
-  }
-  console.log(appHistory.getHistory());
-  var context = {
-    plugPower: plugPower,
-    plugs: Object.keys(plugs).map((UDN) => {
-      return {
-        name: plugs[UDN].device.friendlyName,
-        status: status[UDN] == 0 ? 'spenta' : 'accesa'
+  owl.on('solar', function (event) {
+    var json = JSON.parse(event);
+    exporting = parseInt(json.current[1].exporting);
+    generating = parseInt(json.current[0].generating);
+
+    console.log("Esportando " + exporting);
+    console.log("Generando " + generating);
+  });
+
+  owl.on('electricity', function (event) {
+    var json = JSON.parse(event);
+    appHistory.add({
+      exporting: exporting,
+      generating: generating,
+      consuming: consuming,
+      timestamp: moment(),
+      active: _.sum(_.values(status))
+    });
+    signal = {
+      timestamp: moment(),
+      signal: {
+        quality: Math.min(130 + parseInt(json.signal.rssi), 100),
+        lqi: parseInt(json.signal.lqi)
       }
-    }),
-    generating: generating,
-    consuming: consuming,
-    exporting: exporting,
-    signal: Object.assign({}, signal, {
-      timestamp: signal.timestamp.fromNow()
-    }),
-    overviewGraph: appHistory.getHistory()
-  };
-  res.render('index.pug', context);
-})
+    };
+    consuming = parseInt(json.channels[0][0].current);
+    console.log("Consumando " + consuming);
+  });
 
-app.listen(port, function () {
-  console.log('Listening on port ' + port);
-})
+  owl.on('error', function (error) {
+    console.log(error);
+  });
+
+  owl.monitor();
+}
+
+function startCronJobs() {
+  new cron.CronJob(CHECK_PLUGS_INTERVAL, checkPlugs, true);
+  new cron.CronJob(DISCOVER_WEMO_INTERVAL, discoverNewWemoPlugs, true);
+}
+
+function startServer() {
+  app.set('view engine', 'pug');
+  app.use('/bower_components', express.static(__dirname + '/bower_components'));
+  app.get('/', function (req, res) {
+    if ('plugPower' in req.query) {
+      plugPower = parseInt(req.query['plugPower']);
+    }
+    console.log(appHistory.getHistory());
+    var context = {
+      plugPower: plugPower,
+      plugs: Object.keys(plugs).map((UDN) => {
+        return {
+          name: plugs[UDN].device.friendlyName,
+          status: status[UDN] == 0 ? 'spenta' : 'accesa'
+        }
+      }),
+      generating: generating,
+      consuming: consuming,
+      exporting: exporting,
+      signal: Object.assign({}, signal, {
+        timestamp: signal.timestamp.fromNow()
+      }),
+      overviewGraph: appHistory.getHistory()
+    };
+    res.render('index.pug', context);
+  })
+
+  app.listen(port, function () {
+    console.log('Listening on port ' + port);
+  })
+}
+
+function onStart() {
+  startOwlMonitor();
+  startCronJobs();
+  startServer();
+}
+
+try {
+  onStart();
+} catch (err) {
+  setTimeout(onStart, AUTO_RESTART_INTERVAL);
+}
