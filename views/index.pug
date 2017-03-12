@@ -61,37 +61,64 @@ block additionalScripts
       Highcharts.chart('overview-chart', {
         title: null,
         xAxis: {
-            categories: _.map(overviewGraph, function (v) { return moment(v.timestamp).format('HH:mm:ss'); })
+          categories: _.map(overviewGraph, function (v) { return moment(v.timestamp).format('HH:mm:ss'); })
         },
-        yAxis: {
-            title: {
-                text: 'Watt (W)'
-            },
-            plotLines: [{
-                value: 0,
-                width: 1,
-                color: '#808080'
-            }]
-        },
+        yAxis: [{
+          title: {
+            text: 'Watt (W)'
+          },
+          plotLines: [{
+            value: 0,
+            width: 1,
+            color: '#808080'
+          }],
+          labels: {
+            format: '{value} W'
+          }
+        }, {
+          title: {
+            text: 'Prese attive'
+          },
+          gridLineWidth: 0,
+          labels: {
+            format: '{value}'
+          },
+          opposite: true
+        }],
         tooltip: {
-            valueSuffix: 'W'
+          shared: true
         },
         legend: {
-            layout: 'vertical',
-            align: 'right',
-            verticalAlign: 'middle',
-            borderWidth: 0
+          layout: 'vertical',
+          align: 'right',
+          verticalAlign: 'middle',
+          borderWidth: 0
         },
         series: [{
-            name: 'Produzione',
-            color: '#5cb85c',
-            data: _.map(overviewGraph, 'generating')
+          name: 'Produzione',
+          color: '#5cb85c',
+          yAxis: 0,
+          data: _.map(overviewGraph, 'generating'),
+          tooltip: {
+            valueSuffix: ' W'
+          }
         }, {
-            name: 'Consumo',
-            color: '#d9534f',
-            data: _.map(overviewGraph, 'consuming')
+          name: 'Consumo',
+          color: '#d9534f',
+          yAxis: 0,
+          data: _.map(overviewGraph, 'consuming'),
+          tooltip: {
+            valueSuffix: ' W'
+          }
+        }, {
+          name: 'Prese attive',
+          color: '#e5de27',
+          yAxis: 1,
+          data: _.map(overviewGraph, 'active'),
+          tooltip: {
+            valueSuffix: ''
+          }
         }]
-    });
-
+      });
     });
   
