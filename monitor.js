@@ -62,20 +62,20 @@ function checkPlugs() {
           plugs.splice(UDN, 1);
           status.splice(UDN, 1);
         } else {
-          var currentStatus = parseInt(response);
-          if ((currentStatus == 0 && status[UDN] == 0) && (exporting >= plugPower)) {
-            console.log(UDN + ' accendo');
-            plugs[UDN].setBinaryState(1);
-            status[UDN] = 1;
-            cooldownCount = COOLDOWN_COUNTS_DEFAULT;
-            break;
-          } else if ((currentStatus > 0 && status[UDN] > 0) &&
-            (generating + plugPower * MAX_ADDITIONAL_POWER_ALLOWED - consuming <= 0)) {
-            console.log(UDN + ' spengo');
-            plugs[UDN].setBinaryState(0);
-            status[UDN] = 0;
-            cooldownCount = COOLDOWN_COUNTS_DEFAULT;
-            break;
+          if (cooldownCount <= 0) {
+            var currentStatus = parseInt(response);
+            if ((currentStatus == 0 && status[UDN] == 0) && (exporting >= plugPower)) {
+              console.log(UDN + ' accendo');
+              plugs[UDN].setBinaryState(1);
+              status[UDN] = 1;
+              cooldownCount = COOLDOWN_COUNTS_DEFAULT;
+            } else if ((currentStatus > 0 && status[UDN] > 0) &&
+              (generating + plugPower * MAX_ADDITIONAL_POWER_ALLOWED - consuming <= 0)) {
+              console.log(UDN + ' spengo');
+              plugs[UDN].setBinaryState(0);
+              status[UDN] = 0;
+              cooldownCount = COOLDOWN_COUNTS_DEFAULT;
+            }
           }
         }
       });
