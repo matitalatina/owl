@@ -16,6 +16,8 @@ const DISCOVER_WEMO_INTERVAL = '*/10 * * * * *';
 const MAX_ADDITIONAL_POWER_ALLOWED = 1;
 const AUTO_RESTART_INTERVAL = 5000;
 
+const COOLDOWN_COUNTS_DEFAULT = 2;
+
 var wemo = new Wemo();
 
 var appHistory = new AppHistory();
@@ -25,6 +27,7 @@ var status = [];
 var exporting = 0;
 var generating = 0;
 var consuming = 0;
+var cooldownCount = 0;
 var signal = {
   timestamp: moment(),
   signal: {
@@ -50,29 +53,35 @@ function discoverNewWemoPlugs() {
 
 function checkPlugs() {
   console.log('Potenza soglia: ' + plugPower);
-  for (var UDN in plugs) {
-    plugs[UDN].getBinaryState(function (err, response) {
-      //console.log(UDN + ' ' + response + ' ' + err);
-      if (err) {
-        // remove 
-        plugs.splice(UDN, 1);
-        status.splice(UDN, 1);
-      } else {
-        var activePlugs = _.sum(_.values(status));
-
-        var currentStatus = parseInt(response);
-        if ((currentStatus == 0 && status[UDN] == 0) && (exporting >= plugPower)) {
-          console.log(UDN + ' accendo');
-          plugs[UDN].setBinaryState(1);
-          status[UDN] = 1;
-        } else if ((currentStatus > 0 && status[UDN] > 0) &&
-          (generating + activePlugs * plugPower * MAX_ADDITIONAL_POWER_ALLOWED - consuming <= 0)) {
-          console.log(UDN + ' spengo');
-          plugs[UDN].setBinaryState(0);
-          status[UDN] = 0;
+  if (cooldownCount <= 0) {
+    for (var UDN in plugs) {
+      plugs[UDN].getBinaryState(function (err, response) {
+        //console.log(UDN + ' ' + response + ' ' + err);
+        if (err) {
+          // remove 
+          plugs.splice(UDN, 1);
+          status.splice(UDN, 1);
+        } else {
+          var currentStatus = parseInt(response);
+          if ((currentStatus == 0 && status[UDN] == 0) && (exporting >= plugPower)) {
+            console.log(UDN + ' accendo');
+            plugs[UDN].setBinaryState(1);
+            status[UDN] = 1;
+            cooldownCount = COOLDOWN_COUNTS_DEFAULT;
+            break;
+          } else if ((currentStatus > 0 && status[UDN] > 0) &&
+            (generating + plugPower * MAX_ADDITIONAL_POWER_ALLOWED - consuming <= 0)) {
+            console.log(UDN + ' spengo');
+            plugs[UDN].setBinaryState(0);
+            status[UDN] = 0;
+            cooldownCount = COOLDOWN_COUNTS_DEFAULT;
+            break;
+          }
         }
-      }
-    });
+      });
+    }
+  } else {
+    cooldownCount--;
   }
 }
 
