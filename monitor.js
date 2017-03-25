@@ -52,37 +52,44 @@ function discoverNewWemoPlugs() {
 }
 
 function checkPlugs() {
-  console.log('Potenza soglia: ' + plugPower);
+  //console.log('Potenza soglia: ' + plugPower);
+  //console.log('Cooldown count: ' + cooldownCount)
   if (cooldownCount <= 0) {
     for (var UDN in plugs) {
-      plugs[UDN].getBinaryState(function (err, response) {
-        //console.log(UDN + ' ' + response + ' ' + err);
-        if (err) {
-          // remove 
-          plugs.splice(UDN, 1);
-          status.splice(UDN, 1);
-        } else {
-          if (cooldownCount <= 0) {
-            var currentStatus = parseInt(response);
-            if ((currentStatus == 0 && status[UDN] == 0) && (exporting >= plugPower)) {
-              console.log(UDN + ' accendo');
-              plugs[UDN].setBinaryState(1);
-              status[UDN] = 1;
-              cooldownCount = COOLDOWN_COUNTS_DEFAULT;
-            } else if ((currentStatus > 0 && status[UDN] > 0) &&
-              (generating + plugPower * MAX_ADDITIONAL_POWER_ALLOWED - consuming <= 0)) {
-              console.log(UDN + ' spengo');
-              plugs[UDN].setBinaryState(0);
-              status[UDN] = 0;
-              cooldownCount = COOLDOWN_COUNTS_DEFAULT;
-            }
-          }
-        }
-      });
+      handlePlug(UDN);
     }
   } else {
     cooldownCount--;
   }
+}
+
+function handlePlug(UDN) {
+  //console.log('CHECK ' + UDN);
+  //console.log(status[UDN] > 0, (generating + plugPower * MAX_ADDITIONAL_POWER_ALLOWED - consuming <= 0));
+  plugs[UDN].getBinaryState(function (err, response) {
+    console.log(UDN + ' ' + response + ' ' + err);
+    if (err) {
+      // remove 
+      plugs.splice(UDN, 1);
+      status.splice(UDN, 1);
+    } else {
+      status[UDN] = response;
+      if (cooldownCount <= 0) {
+        if (status[UDN] == 0 && exporting >= plugPower) {
+          console.log(UDN + ' accendo');
+          plugs[UDN].setBinaryState(1);
+          status[UDN] = 1;
+          cooldownCount = COOLDOWN_COUNTS_DEFAULT;
+        } else if (status[UDN] > 0 &&
+          (generating + plugPower * MAX_ADDITIONAL_POWER_ALLOWED - consuming <= 0)) {
+          console.log(UDN + ' spengo');
+          plugs[UDN].setBinaryState(0);
+          status[UDN] = 0;
+          cooldownCount = COOLDOWN_COUNTS_DEFAULT;
+        }
+      }
+    }
+  });
 }
 
 function startOwlMonitor() {
