@@ -22,8 +22,8 @@ var wemo = new Wemo();
 
 var appHistory = new AppHistory();
 
-var plugs = [];
-var status = [];
+var plugs = {};
+var plugStatus = {};
 var exporting = 0;
 var generating = 0;
 var consuming = 0;
@@ -45,7 +45,7 @@ function discoverNewWemoPlugs() {
     plugs[UDN] = client;
 
     client.on('binaryState', function (value) {
-      status[UDN] = parseInt(value);
+      plugStatus[UDN] = parseInt(value);
       console.log(UDN + ': %s', value);
     });
   });
@@ -71,20 +71,20 @@ function handlePlug(UDN) {
     if (err) {
       // remove 
       plugs.splice(UDN, 1);
-      status.splice(UDN, 1);
+      plugStatus.splice(UDN, 1);
     } else {
-      status[UDN] = response;
+      plugStatus[UDN] = _.min([parseInt(response), 1]);
       if (cooldownCount <= 0) {
-        if (status[UDN] == 0 && exporting >= plugPower) {
+        if (plugStatus[UDN] == 0 && exporting >= plugPower) {
           console.log(UDN + ' accendo');
           plugs[UDN].setBinaryState(1);
-          status[UDN] = 1;
+          plugStatus[UDN] = 1;
           cooldownCount = COOLDOWN_COUNTS_DEFAULT;
-        } else if (status[UDN] > 0 &&
+        } else if (plugStatus[UDN] > 0 &&
           (generating + plugPower * MAX_ADDITIONAL_POWER_ALLOWED - consuming <= 0)) {
           console.log(UDN + ' spengo');
           plugs[UDN].setBinaryState(0);
-          status[UDN] = 0;
+          plugStatus[UDN] = 0;
           cooldownCount = COOLDOWN_COUNTS_DEFAULT;
         }
       }
@@ -111,7 +111,7 @@ function startOwlMonitor() {
       generating: generating,
       consuming: consuming,
       timestamp: moment(),
-      active: _.sum(_.values(status))
+      active: _.sum(_.values(plugStatus))
     });
     signal = {
       timestamp: moment(),
@@ -149,7 +149,7 @@ function startServer() {
       plugs: Object.keys(plugs).map((UDN) => {
         return {
           name: plugs[UDN].device.friendlyName,
-          status: status[UDN] == 0 ? 'spenta' : 'accesa'
+          status: plugStatus[UDN] == 0 ? 'spenta' : 'accesa'
         }
       }),
       generating: generating,
