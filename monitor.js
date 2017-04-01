@@ -9,7 +9,7 @@ var app = express();
 
 moment.locale('it');
 
-const plugPower = 700;
+var plugPower = 700;
 const port = 8080;
 const CHECK_PLUGS_INTERVAL = '*/5 * * * * *';
 const DISCOVER_WEMO_INTERVAL = '*/10 * * * * *';
