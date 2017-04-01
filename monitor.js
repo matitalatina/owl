@@ -45,7 +45,7 @@ function discoverNewWemoPlugs() {
     plugs[UDN] = client;
 
     client.on('binaryState', function (value) {
-      plugStatus[UDN] = parseInt(value);
+      plugStatus[UDN] = _.min([parseInt(value), 1]);
       console.log(UDN + ': %s', value);
     });
   });
