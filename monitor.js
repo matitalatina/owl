@@ -8,14 +8,12 @@ let cron = require('cron');
 let app = express();
 let plugRepo = new (require('./app/plug-repo.js'))();
 let plugHandler = new (require('./app/plug-handler.js'))();
+let config = require('./app/config.js');
 
 moment.locale('it');
 
 let plugPower = 700;
-const port = 8080;
-const CHECK_PLUGS_INTERVAL = '*/5 * * * * *';
-const DISCOVER_WEMO_INTERVAL = '*/10 * * * * *';
-const MAX_ADDITIONAL_POWER_ALLOWED = 1;
+const port = config.WEB_PORT;
 const AUTO_RESTART_INTERVAL = 5000;
 
 let wemo = new Wemo();
@@ -89,8 +87,8 @@ function startOwlMonitor() {
 }
 
 function startCronJobs() {
-  new cron.CronJob(CHECK_PLUGS_INTERVAL, () => plugHandler.checkPlugs(generating, exporting, consuming, plugPower, MAX_ADDITIONAL_POWER_ALLOWED), null, true);
-  new cron.CronJob(DISCOVER_WEMO_INTERVAL, discoverNewWemoPlugs, null, true);
+  new cron.CronJob(config.CHECK_PLUGS_INTERVAL, () => plugHandler.checkPlugs(generating, exporting, consuming, plugPower), null, true);
+  new cron.CronJob(config.DISCOVER_WEMO_INTERVAL, discoverNewWemoPlugs, null, true);
 }
 
 function startServer() {

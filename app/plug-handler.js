@@ -1,7 +1,6 @@
 let plugRepo = new (require('./plug-repo.js'))();
 let _ = require('lodash');
-
-const COOLDOWN_COUNTS_DEFAULT = 2;
+let config = require('./config.js');
 
 let cooldownCount = 0;
 
@@ -13,7 +12,7 @@ class PlugHandler {
   set isActive (isActive) { this._isActive = isActive; }
   get isActive () { return this._isActive; }
   
-  handlePlug(UDN, generating, exporting, consuming, plugPower, MAX_ADDITIONAL_POWER_ALLOWED) {
+  handlePlug(UDN, generating, exporting, consuming, plugPower) {
     //console.log('CHECK ' + UDN);
     //console.log(status[UDN] > 0, (generating + plugPower * MAX_ADDITIONAL_POWER_ALLOWED - consuming <= 0));
     plugRepo.getPlugs()[UDN].getBinaryState(function (err, response) {
@@ -30,25 +29,25 @@ class PlugHandler {
             console.log(UDN + ' accendo');
             plugRepo.getPlugs()[UDN].setBinaryState(1);
             plugStatus[UDN] = 1;
-            cooldownCount = COOLDOWN_COUNTS_DEFAULT;
+            cooldownCount = config.COOLDOWN_COUNTS_DEFAULT;
           } else if (plugStatus[UDN] > 0 &&
-            (generating + plugPower * MAX_ADDITIONAL_POWER_ALLOWED - consuming <= 0)) {
+            (generating + plugPower * config.MAX_ADDITIONAL_POWER_ALLOWED - consuming <= 0)) {
             console.log(UDN + ' spengo');
             plugRepo.getPlugs()[UDN].setBinaryState(0);
             plugStatus[UDN] = 0;
-            cooldownCount = COOLDOWN_COUNTS_DEFAULT;
+            cooldownCount = config.COOLDOWN_COUNTS_DEFAULT;
           }
         }
       }
     });
   }
   
-  checkPlugs(generating, exporting, consuming, plugPower, MAX_ADDITIONAL_POWER_ALLOWED) {
+  checkPlugs(generating, exporting, consuming, plugPower) {
     //console.log('Potenza soglia: ' + plugPower);
     //console.log('Cooldown count: ' + cooldownCount)
     if (cooldownCount <= 0) {
       for (var UDN in plugRepo.getPlugs()) {
-        this.handlePlug(UDN, generating, exporting, consuming, plugPower, MAX_ADDITIONAL_POWER_ALLOWED);
+        this.handlePlug(UDN, generating, exporting, consuming, plugPower);
       }
     } else {
       cooldownCount--;
