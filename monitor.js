@@ -13,7 +13,6 @@ let config = require('./app/config.js');
 moment.locale('it');
 
 const port = config.WEB_PORT;
-const AUTO_RESTART_INTERVAL = 5000;
 
 let wemo = new Wemo();
 
@@ -95,12 +94,12 @@ function startServer() {
   app.use('/bower_components', express.static(__dirname + '/bower_components'));
   app.get('/', function (req, res) {
     if ('plugPower' in req.query) {
-      config.plugPower = parseInt(req.query['plugPower']);
+      plugHandler.plugPower = parseInt(req.query['plugPower']);
     }
     console.log(appHistory.getHistory());
     let plugs = plugRepo.getPlugs();
     let context = {
-      plugPower: config.plugPower,
+      plugPower: plugHandler.plugPower,
       plugs: Object.keys(plugs).map((UDN) => {
         return {
           name: plugs[UDN].device.friendlyName,
@@ -130,5 +129,5 @@ function onStart() {
 try {
   onStart();
 } catch (err) {
-  setTimeout(onStart, AUTO_RESTART_INTERVAL);
+  setTimeout(onStart, config.AUTO_RESTART_INTERVAL);
 }
