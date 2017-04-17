@@ -12,7 +12,6 @@ let config = require('./app/config.js');
 
 moment.locale('it');
 
-let plugPower = 700;
 const port = config.WEB_PORT;
 const AUTO_RESTART_INTERVAL = 5000;
 
@@ -87,7 +86,7 @@ function startOwlMonitor() {
 }
 
 function startCronJobs() {
-  new cron.CronJob(config.CHECK_PLUGS_INTERVAL, () => plugHandler.checkPlugs(generating, exporting, consuming, plugPower), null, true);
+  new cron.CronJob(config.CHECK_PLUGS_INTERVAL, () => plugHandler.checkPlugs(), null, true);
   new cron.CronJob(config.DISCOVER_WEMO_INTERVAL, discoverNewWemoPlugs, null, true);
 }
 
@@ -96,12 +95,12 @@ function startServer() {
   app.use('/bower_components', express.static(__dirname + '/bower_components'));
   app.get('/', function (req, res) {
     if ('plugPower' in req.query) {
-      plugPower = parseInt(req.query['plugPower']);
+      config.plugPower = parseInt(req.query['plugPower']);
     }
     console.log(appHistory.getHistory());
     let plugs = plugRepo.getPlugs();
     let context = {
-      plugPower: plugPower,
+      plugPower: config.plugPower,
       plugs: Object.keys(plugs).map((UDN) => {
         return {
           name: plugs[UDN].device.friendlyName,

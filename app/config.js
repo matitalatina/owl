@@ -1,5 +1,5 @@
 var exports = module.exports = {};
-
+exports.plugPower = 700;
 exports.WEB_PORT = 8080;
 exports.CHECK_PLUGS_INTERVAL = '*/5 * * * * *';
 exports.DISCOVER_WEMO_INTERVAL = '*/10 * * * * *';

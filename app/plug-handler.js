@@ -1,6 +1,7 @@
-let plugRepo = new (require('./plug-repo.js'))();
-let _ = require('lodash');
+const plugRepo = new (require('./plug-repo.js'))();
+const _ = require('lodash');
 let config = require('./config.js');
+const historyRepo = new (require('./history.js'))();
 
 let cooldownCount = 0;
 
@@ -12,7 +13,8 @@ class PlugHandler {
   set isActive (isActive) { this._isActive = isActive; }
   get isActive () { return this._isActive; }
   
-  handlePlug(UDN, generating, exporting, consuming, plugPower) {
+  handlePlug(UDN) {
+    const latestUpdate = historyRepo.getLatestUpdate();
     //console.log('CHECK ' + UDN);
     //console.log(status[UDN] > 0, (generating + plugPower * MAX_ADDITIONAL_POWER_ALLOWED - consuming <= 0));
     plugRepo.getPlugs()[UDN].getBinaryState(function (err, response) {
@@ -25,13 +27,13 @@ class PlugHandler {
       } else {
         plugStatus[UDN] = _.min([parseInt(response), 1]);
         if (cooldownCount <= 0) {
-          if (plugStatus[UDN] == 0 && exporting >= plugPower) {
+          if (plugStatus[UDN] == 0 && latestUpdate.exporting >= config.plugPower) {
             console.log(UDN + ' accendo');
             plugRepo.getPlugs()[UDN].setBinaryState(1);
             plugStatus[UDN] = 1;
             cooldownCount = config.COOLDOWN_COUNTS_DEFAULT;
           } else if (plugStatus[UDN] > 0 &&
-            (generating + plugPower * config.MAX_ADDITIONAL_POWER_ALLOWED - consuming <= 0)) {
+            (latestUpdate.generating + config.plugPower * config.MAX_ADDITIONAL_POWER_ALLOWED - latestUpdate.consuming <= 0)) {
             console.log(UDN + ' spengo');
             plugRepo.getPlugs()[UDN].setBinaryState(0);
             plugStatus[UDN] = 0;
@@ -42,12 +44,12 @@ class PlugHandler {
     });
   }
   
-  checkPlugs(generating, exporting, consuming, plugPower) {
+  checkPlugs() {
     //console.log('Potenza soglia: ' + plugPower);
     //console.log('Cooldown count: ' + cooldownCount)
     if (cooldownCount <= 0) {
       for (var UDN in plugRepo.getPlugs()) {
-        this.handlePlug(UDN, generating, exporting, consuming, plugPower);
+        this.handlePlug(UDN);
       }
     } else {
       cooldownCount--;
