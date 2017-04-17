@@ -5,6 +5,7 @@ let express = require('express');
 let AppHistory = require('./app/history.js');
 let _ = require('lodash');
 let cron = require('cron');
+let bodyParser = require('body-parser');
 let app = express();
 let plugRepo = new (require('./app/plug-repo.js'))();
 let plugHandler = new (require('./app/plug-handler.js'))();
@@ -92,32 +93,46 @@ function startCronJobs() {
 function startServer() {
   app.set('view engine', 'pug');
   app.use('/bower_components', express.static(__dirname + '/bower_components'));
-  app.get('/', function (req, res) {
-    if ('plugPower' in req.query) {
-      plugHandler.plugPower = parseInt(req.query['plugPower']);
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({ extended: true }));
+  
+  app.get('/', renderHome);
+  
+  app.post('/', function (req, res) {
+    
+    if ('plugPower' in req.body) {
+      plugHandler.plugPower = parseInt(req.body['plugPower']);
     }
-    console.log(appHistory.getHistory());
-    let plugs = plugRepo.getPlugs();
-    let context = {
-      plugPower: plugHandler.plugPower,
-      plugs: Object.keys(plugs).map((UDN) => {
-        return {
-          name: plugs[UDN].device.friendlyName,
-          status: plugRepo.getStatuses()[UDN] == 0 ? 'spenta' : 'accesa'
-        }
-      }),
-      latestUpdate: appHistory.getLatestUpdate(),
-      signal: Object.assign({}, signal, {
-        timestamp: signal.timestamp.fromNow()
-      }),
-      appHistory: appHistory.getHistory()
-    };
-    res.render('index.pug', context);
-  })
+    
+    plugHandler.isActive = !!req.body.isActive;
+    
+    renderHome(req, res);
+  });
 
   app.listen(port, function () {
     console.log('Listening on port ' + port);
-  })
+  });
+}
+
+function renderHome(req, res) {
+  console.log(plugHandler.isActive)
+  let plugs = plugRepo.getPlugs();
+  let context = {
+    isActive: plugHandler.isActive,
+    plugPower: plugHandler.plugPower,
+    plugs: Object.keys(plugs).map((UDN) => {
+      return {
+        name: plugs[UDN].device.friendlyName,
+        status: plugRepo.getStatuses()[UDN] == 0 ? 'spenta' : 'accesa'
+      }
+    }),
+    latestUpdate: appHistory.getLatestUpdate(),
+    signal: Object.assign({}, signal, {
+      timestamp: signal.timestamp.fromNow()
+    }),
+    appHistory: appHistory.getHistory()
+  };
+  res.render('index.pug', context);
 }
 
 function onStart() {

@@ -47,12 +47,16 @@ block content
           .card-block
             #overview-chart(style={width: '100%', height: '340px'})
     br
-    form
+    form(method='post')
       .form-group
         label(for='plugPower') Potenza soglia
         .input-group
-          input.form-control.col-md-3(type='text', name='plugPower', value=plugPower)
+          input.form-control.col-md-3(type='text' name='plugPower' value=plugPower)
           .input-group-addon W
+      .form-group.checkbox
+        label
+          input(type='checkbox' checked=isActive name='isActive') 
+          |  Smart energy
       button.btn.btn-primary(type='submit') #[i.fa.fa-save] Salva
 block additionalScripts
   script.
