@@ -22,6 +22,21 @@ class AppHistory {
   getHistory() {
     return [].concat(this.history);
   }
+
+  getLatestUpdate() {
+    let history = this.getHistory();
+    return history[history.length - 1] || this.getDefaultValue();
+  }
+
+  getDefaultValue() {
+    return {
+      exporting: 0,
+      generating: 0,
+      consuming: 0,
+      timestamp: moment(),
+      active: 1
+    };
+  }
 }
 
 var exports = module.exports = AppHistory;

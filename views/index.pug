@@ -21,19 +21,19 @@ block content
           .card-block
             h4.card-title.text-success #[i.fa.fa-3x.fa-sun-o]
             h6.card-subtitle.mb-2.text-muted Produzione
-            span #{generating} W
+            span #{latestUpdate.generating} W
       .col-md-4.my-3
         .card.card-outline-danger.text-center
           .card-block
             h4.card-title.text-danger #[i.fa.fa-3x.fa-fire]
             h6.card-subtitle.mb-2.text-muted Consumo
-            span #{consuming} W
+            span #{latestUpdate.consuming} W
       .col-md-4.my-3
         .card.card-outline-info.text-center
           .card-block
             h4.card-title.text-info #[i.fa.fa-3x.fa-cloud-upload]
             h6.card-subtitle.mb-2.text-muted Esportazione
-            span #{exporting} W
+            span #{latestUpdate.exporting} W
       .col-md-4.my-3
         .card.text-center
           .card-block
@@ -56,7 +56,7 @@ block content
       button.btn.btn-primary(type='submit') #[i.fa.fa-save] Salva
 block additionalScripts
   script.
-    var overviewGraph = !{JSON.stringify(overviewGraph)};
+    var overviewGraph = !{JSON.stringify(appHistory)};
     $(function () {
       Highcharts.chart('overview-chart', {
         title: null,

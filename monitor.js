@@ -110,13 +110,11 @@ function startServer() {
           status: plugRepo.getStatuses()[UDN] == 0 ? 'spenta' : 'accesa'
         }
       }),
-      generating: generating,
-      consuming: consuming,
-      exporting: exporting,
+      latestUpdate: appHistory.getLatestUpdate(),
       signal: Object.assign({}, signal, {
         timestamp: signal.timestamp.fromNow()
       }),
-      overviewGraph: appHistory.getHistory()
+      appHistory: appHistory.getHistory()
     };
     res.render('index.pug', context);
   })
