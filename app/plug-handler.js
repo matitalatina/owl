@@ -1,24 +1,32 @@
 'use strict';
 
-const plugRepo = new (require('./plug-repo.js'))();
+const plugRepo = new(require('./plug-repo.js'))();
 const _ = require('lodash');
 let config = require('./config.js');
-const historyRepo = new (require('./history.js'))();
+const historyRepo = new(require('./history.js'))();
 
 let cooldownCount = 0;
 
 class PlugHandler {
-  constructor (isActive = true) {
+  constructor(isActive = true) {
     this.isActive = isActive;
-    this.plugPower = config.PLUG_POWER_DEFAULT;
+    this.plugPower = config.plugPower;
   }
-  
-  set isActive (isActive) { this._isActive = isActive; }
-  get isActive () { return this._isActive; }
-  
-  set plugPower (plugPower) { this._plugPower = plugPower; }
-  get plugPower () { return this._plugPower; }
-  
+
+  set isActive(isActive) {
+    this._isActive = isActive;
+  }
+  get isActive() {
+    return this._isActive;
+  }
+
+  set plugPower(plugPower) {
+    config.plugPower = plugPower;
+  }
+  get plugPower() {
+    return config.plugPower;
+  }
+
   handlePlug(UDN) {
     let self = this;
     const latestUpdate = historyRepo.getLatestUpdate();
@@ -50,7 +58,7 @@ class PlugHandler {
       }
     });
   }
-  
+
   checkPlugs() {
     //console.log('Potenza soglia: ' + plugPower);
     //console.log('Cooldown count: ' + cooldownCount)

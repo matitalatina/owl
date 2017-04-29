@@ -10,15 +10,20 @@
     "debug": "^2.2.0",
     "entities": "^1.1.1",
     "express": "^4.14.0",
+    "lokijs": "^1.4.3",
     "moment": "^2.17.1",
     "node-ssdp": "^2.7.2",
     "pug": "^2.0.0-beta11",
     "wemo-client": "^0.9.0",
     "xml2json": "^0.10.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.3.0"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": ". ./prod.env && node monitor.js",
+    "test": ". ./test.env && mocha --watch \"./{app/**/,}*.spec.js\""
   },
   "repository": {
     "type": "git",
