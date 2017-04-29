@@ -42,6 +42,7 @@ class PlugHandler {
       } else {
         plugStatus[UDN] = _.min([parseInt(response), 1]);
         if (cooldownCount <= 0) {
+          //console.log(latestUpdate, self.plugPower, plugStatus[UDN] == 0, latestUpdate.exporting, plugStatus[UDN] == 0 && latestUpdate.exporting >= self.plugPower)
           if (plugStatus[UDN] == 0 && latestUpdate.exporting >= self.plugPower) {
             console.log(UDN + ' accendo');
             plugRepo.getPlugs()[UDN].setBinaryState(1);

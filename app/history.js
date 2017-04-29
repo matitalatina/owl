@@ -3,6 +3,8 @@
 const moment = require('moment');
 const MAX_HISTORY_ELEMS = 100;
 
+let history = [];
+
 /*
   {
     exporting: 0,
@@ -13,17 +15,14 @@ const MAX_HISTORY_ELEMS = 100;
   }
 */
 class AppHistory {
-  constructor() {
-    this.history = [];
-  }
 
   add(update) {
-    this.history.push(update);
-    this.history = this.history.slice(-MAX_HISTORY_ELEMS);
+    history.push(update);
+    history = history.slice(-MAX_HISTORY_ELEMS);
   }
 
   getHistory() {
-    return [].concat(this.history);
+    return [].concat(history);
   }
 
   getLatestUpdate() {
@@ -37,7 +36,7 @@ class AppHistory {
       generating: 0,
       consuming: 0,
       timestamp: moment(),
-      active: 1
+      active: 0
     };
   }
 }
