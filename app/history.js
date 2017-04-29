@@ -1,3 +1,5 @@
+'use strict';
+
 const moment = require('moment');
 const MAX_HISTORY_ELEMS = 100;
 

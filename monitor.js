@@ -1,3 +1,5 @@
+'use strict';
+
 let Wemo = require('wemo-client');
 let moment = require('moment');
 let OWL = require('./owlintuition.js');

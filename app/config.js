@@ -1,3 +1,5 @@
+'use strict';
+
 var exports = module.exports = {};
 
 exports.WEB_PORT = 8080;

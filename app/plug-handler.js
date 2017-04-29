@@ -1,3 +1,5 @@
+'use strict';
+
 const plugRepo = new (require('./plug-repo.js'))();
 const _ = require('lodash');
 let config = require('./config.js');
