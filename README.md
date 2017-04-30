@@ -2,6 +2,8 @@
 
 This project was started by [@arpesenti](https://github.com/arpesenti/).
 
+![owl home page](https://cloud.githubusercontent.com/assets/2093741/25564565/4add6ee2-2db6-11e7-91e3-fb01c9e74856.png)
+
 # Getting started
 
 * This project is based on [node.js](https://nodejs.org)
