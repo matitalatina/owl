@@ -37,8 +37,8 @@ function discoverNewWemoPlugs() {
   wemo.discover(function (deviceInfo) {
     // Get the client for the found device 
     let client = wemo.client(deviceInfo);
-    let UDN = client["UDN"];
-    console.log("Found " + UDN);
+    let UDN = client['UDN'];
+    console.log('Found ' + UDN);
     plugRepo.addPlug(client);
 
     client.on('binaryState', function (value) {
@@ -56,8 +56,8 @@ function startOwlMonitor() {
     exporting = parseInt(json.current[1].exporting);
     generating = parseInt(json.current[0].generating);
 
-    console.log("Esportando " + exporting);
-    console.log("Generando " + generating);
+    console.log('Esportando ' + exporting);
+    console.log('Generando ' + generating);
   });
 
   owl.on('electricity', function (event) {
@@ -77,7 +77,7 @@ function startOwlMonitor() {
       }
     };
     consuming = parseInt(json.channels[0][0].current);
-    console.log("Consumando " + consuming);
+    console.log('Consumando ' + consuming);
   });
 
   owl.on('error', function (error) {
@@ -97,17 +97,17 @@ function startServer() {
   app.use('/bower_components', express.static(__dirname + '/bower_components'));
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
-  
+
   app.get('/', renderHome);
-  
+
   app.post('/', function (req, res) {
-    
+
     if ('plugPower' in req.body) {
       plugHandler.plugPower = parseInt(req.body['plugPower']);
     }
-    
+
     plugHandler.isActive = !!req.body.isActive;
-    
+
     renderHome(req, res);
   });
 
@@ -117,7 +117,7 @@ function startServer() {
 }
 
 function renderHome(req, res) {
-  console.log(plugHandler.isActive)
+  console.log(plugHandler.isActive);
   let plugs = plugRepo.getPlugs();
   let context = {
     isActive: plugHandler.isActive,
@@ -126,7 +126,7 @@ function renderHome(req, res) {
       return {
         name: plugs[UDN].device.friendlyName,
         status: plugRepo.getStatuses()[UDN] == 0 ? 'spenta' : 'accesa'
-      }
+      };
     }),
     latestUpdate: appHistory.getLatestUpdate(),
     signal: Object.assign({}, signal, {

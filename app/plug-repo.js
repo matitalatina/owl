@@ -22,4 +22,4 @@ class PlugRepo {
   }
 }
 
-var exports = module.exports = PlugRepo;
+module.exports = PlugRepo;

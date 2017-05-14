@@ -41,4 +41,4 @@ class AppHistory {
   }
 }
 
-var exports = module.exports = AppHistory;
+module.exports = AppHistory;

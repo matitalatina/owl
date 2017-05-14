@@ -57,13 +57,13 @@ class Config {
 
     let rawConfig = configCollection.findOne({
       id: CONFIG_COLLECTION_NAME
-    })
+    });
 
     if (!rawConfig) {
       rawConfig = configCollection.insert({
         id: CONFIG_COLLECTION_NAME,
         plugPower: PLUG_POWER_DEFAULT
-      })
+      });
     }
 
     return rawConfig;
@@ -97,4 +97,4 @@ function getCollection() {
   });
 }
 
-var exports = module.exports = Config;
+module.exports = Config;
