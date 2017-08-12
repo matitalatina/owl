@@ -58,17 +58,11 @@ function startOwlMonitor() {
 
     console.log('Esportando ' + exporting);
     console.log('Generando ' + generating);
+    addHistory();
   });
 
   owl.on('electricity', function (event) {
     let json = JSON.parse(event);
-    appHistory.add({
-      exporting: exporting,
-      generating: generating,
-      consuming: consuming,
-      timestamp: moment(),
-      active: _.sum(_.values(plugRepo.getStatuses()))
-    });
     signal = {
       timestamp: moment(),
       signal: {
@@ -78,6 +72,7 @@ function startOwlMonitor() {
     };
     consuming = parseInt(json.channels[0][0].current);
     console.log('Consumando ' + consuming);
+    addHistory();
   });
 
   owl.on('error', function (error) {
@@ -90,6 +85,16 @@ function startOwlMonitor() {
 function startCronJobs() {
   new cron.CronJob(config.CHECK_PLUGS_INTERVAL, () => plugHandler.checkPlugs(), null, true);
   new cron.CronJob(config.DISCOVER_WEMO_INTERVAL, discoverNewWemoPlugs, null, true);
+}
+
+function addHistory() {
+  appHistory.add({
+    exporting: exporting,
+    generating: generating,
+    consuming: consuming,
+    timestamp: moment(),
+    active: _.sum(_.values(plugRepo.getStatuses()))
+  });
 }
 
 function startServer() {
